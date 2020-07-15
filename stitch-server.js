@@ -79,9 +79,10 @@ const makeResolversForSchemaStiching = (chirpSchema, authorSchema) => ({
 });
 
 Promise.all([fetchChirpSchema, fetchAuthorSchema]).then(([chirpSchema, authorSchema]) => {
+
     const schema = mergeSchemas({
-        schemas: [chirpSchema, authorSchema], // , linkTypeDefs],
-        // resolvers: makeResolversForSchemaStiching(chirpSchema, authorSchema),
+        schemas: [chirpSchema, authorSchema, linkTypeDefs],
+        resolvers: makeResolversForSchemaStiching(chirpSchema, authorSchema),
     });
     
     const server = new ApolloServer({ schema });
