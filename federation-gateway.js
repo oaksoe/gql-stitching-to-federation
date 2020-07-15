@@ -10,7 +10,9 @@ const gateway = new ApolloGateway({
   
 const server = new ApolloServer({ 
     gateway,
-    subscriptions: false
+    subscriptions: false,
+    cacheControl: true,
+    tracing: true,
 });
 
 server.listen(8000).then(({ url }) => {
