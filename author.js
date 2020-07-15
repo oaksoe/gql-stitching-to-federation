@@ -38,18 +38,21 @@ const { ApolloServer, gql } = require('apollo-server');
 // Non-federation way
 const authorSchema = {
     typeDefs: gql`
-        type User @cacheControl(maxAge: 240) {
+        type User {
             id: ID!
-            email: String @cacheControl(maxAge: 120)
+            email: String
         }
     
         type Query {
-            userById(id: ID!): User @cacheControl(maxAge: 600)
+            userById(id: ID!): User
         }
     `,
     resolvers: {
         Query: {
-            userById: (root, args, context, info) => ({id: 1, email: 'oak@gmail.com'}),
+            userById: (root, args, context, info) => {
+                info.cacheControl.setCacheHint({ maxAge: 999 });
+                return {id: 1, email: 'oak@gmail.com'};
+            },
         }
     } 
 };

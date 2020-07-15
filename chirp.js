@@ -40,21 +40,27 @@ const { ApolloServer, gql } = require('apollo-server');
 // Non-federation way
 const chirpSchema = {
     typeDefs: gql`
-        type Chirp @cacheControl(maxAge: 200) {
+        type Chirp {
             id: ID!
-            text: String @cacheControl(maxAge: 100)
+            text: String
             authorId: ID!
         }
 
         type Query {
             chirpById(id: ID!): Chirp
-            chirpsByAuthorId(authorId: ID!): [Chirp] @cacheControl(maxAge: 600)
+            chirpsByAuthorId(authorId: ID!): [Chirp]
         }
     `,
     resolvers: {
         Query: {
-            chirpById: (root, args, context, info) => ({id: 1, text: 'first chirp', authorId: 1}),
-            chirpsByAuthorId: (root, args, context, info) => [{id: 1, text: 'first chirp', authorId: 1}],
+            chirpById: (root, args, context, info) => {
+                info.cacheControl.setCacheHint({ maxAge: 888 });
+                return {id: 1, text: 'first chirp', authorId: 1}
+            },
+            chirpsByAuthorId: (root, args, context, info) => {
+                info.cacheControl.setCacheHint({ maxAge: 777 });
+                return [{id: 1, text: 'first chirp', authorId: 1}]
+            },
         }
     } 
 };
