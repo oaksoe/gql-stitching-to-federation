@@ -13,16 +13,16 @@ const chirpSchema = {
         PUBLIC
         PRIVATE
     }
-    
+
         type Chirp @key(fields: "id") {
             id: ID!
-            text: String @cacheControl(maxAge: 777)
-            authorId: ID!
+            text: String
+            authorId: ID! @cacheControl(maxAge: 333)
         }
 
         type Query {
             chirpById(id: ID!): Chirp @cacheControl(maxAge: 888)
-            chirpsByAuthorId(authorId: ID!): [Chirp] @cacheControl(maxAge: 999)
+            chirpsByAuthorId(authorId: ID!): [Chirp] @cacheControl(maxAge: 777)
         }
 
         extend type User @key(fields: "id") {
@@ -37,8 +37,14 @@ const chirpSchema = {
             },
         },
         Query: {
-            chirpById: (root, args, context, info) => ({id: 1, text: 'first chirp', authorId: 1}),
-            chirpsByAuthorId: (root, args, context, info) => [{id: 1, text: 'first chirp', authorId: 1}],
+            chirpById: (root, args, context, info) => {
+                // info.cacheControl.setCacheHint({ maxAge: 888 });
+                return {id: 1, text: 'first chirp', authorId: 1}
+            },
+            chirpsByAuthorId: (root, args, context, info) => {
+                // info.cacheControl.setCacheHint({ maxAge: 777 });
+                return [{id: 1, text: 'first chirp', authorId: 1}]
+            },
         }
     } 
 };

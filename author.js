@@ -16,11 +16,11 @@ const authorSchema = {
 
         type User @key(fields: "id") {
             id: ID!
-            email: String @cacheControl(maxAge: 150)
+            email: String @cacheControl(maxAge: 100)
         }
     
         type Query {
-            userById(id: ID!): User @cacheControl(maxAge: 300) 
+            userById(id: ID!): User @cacheControl(maxAge: 200)
         }
 
         extend type Chirp @key(fields: "id") {
@@ -31,12 +31,15 @@ const authorSchema = {
     `,
     resolvers: {
         Chirp: {
-            author: ({ authorId }) => {
+            author: ({ authorId, ...args }) => {
                 return {id: 1, email: 'oakoak@gmail.com'};
             },
         },
         Query: {
-            userById: (root, args, context, info) => ({id: 1, email: 'oak@gmail.com'}),
+            userById: (root, args, context, info) => {
+                // info.cacheControl.setCacheHint({ maxAge: 222 });
+                return {id: 1, email: 'oak@gmail.com'};
+            },
         }
     } 
 };
