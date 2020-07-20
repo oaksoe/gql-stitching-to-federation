@@ -59,7 +59,7 @@ const server = new ApolloServer({
     // plugins: [responseCachePlugin()],
     plugins: [
         CacheControlHeaderPlugin
-      ],
+    ],
 });
 
 server.listen(8000).then(({ url }) => {

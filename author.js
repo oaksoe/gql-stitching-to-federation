@@ -55,7 +55,7 @@ const authorSchema = {
     typeDefs: gql`
         type User {
             id: ID!
-            email: String
+            email: String @cacheControl(maxAge: 240)
         }
     
         type Query {
@@ -65,7 +65,7 @@ const authorSchema = {
     resolvers: {
         Query: {
             userById: (root, args, context, info) => {
-                info.cacheControl.setCacheHint({ maxAge: 999 });
+                info.cacheControl.setCacheHint({ maxAge: 60 });
                 return {id: 1, email: 'oak@gmail.com'};
             },
         }
@@ -79,6 +79,7 @@ const server = new ApolloServer({
         // Options are passed through to the Redis client
     }),
     plugins: [responseCachePlugin()],
+    //introspection: false,
 });
 
 server.listen(4002).then(({ url }) => {

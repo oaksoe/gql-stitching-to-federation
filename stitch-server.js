@@ -11,18 +11,64 @@ app.get('/', function (req, res) {
 app.listen(3000);
 */
 
+const { ApolloLink } = require('apollo-link');
 const { ApolloServer } = require('apollo-server');
 const { introspectSchema, makeRemoteExecutableSchema, mergeSchemas } = require('graphql-tools');
 const { HttpLink } = require('apollo-link-http');
 const fetch = require('node-fetch');
 
+const CacheHeaderRegex = /^max-age=([0-9]+), public$/;
+
+const calculateCacheHeader = (cacheControl = []) => {
+  const maxAge = cacheControl.map((h) => CacheHeaderRegex.exec(h))
+        .map((matches) => matches || [])
+        .map((matches) => matches[1] || 0) // eslint-disable-line no-magic-numbers
+        .reduce((acc, val) => Math.min(acc, val), +Infinity);
+
+    return maxAge ? `max-age=${maxAge}, public` : 'no-cache';
+};
+
+const CacheControlHeaderPlugin = {
+    requestDidStart () {
+        return {
+            willSendResponse ({ response, context }) {
+                if (context.cacheControl) {
+                  const cacheHeader = calculateCacheHeader(context.cacheControl);
+                  response.http.headers.set('Cache-Control', cacheHeader);
+                }
+            }
+        };
+    }
+};
+
 const fetchFromRemoteSchema = async(remoteUrl) => {
-    const link = new HttpLink({ uri: remoteUrl, fetch });
+    const retrieveCacheHintLink = new ApolloLink((operation, forward) => {
+      return forward(operation).map(response => {
+        const context = operation.getContext();
+
+        if (context.graphqlContext) {
+          const cacheControl = context.response.headers.get('Cache-Control');
+    
+          if (cacheControl) {
+            if (!context.graphqlContext.cacheControl || !Array.isArray(context.graphqlContext.cacheControl)) {
+              context.graphqlContext.cacheControl = [];
+            }
+      
+            context.graphqlContext.cacheControl.push(cacheControl);
+          }
+        }
+
+        return response;
+      })
+    });
+
+    const link = ApolloLink.from([retrieveCacheHintLink, new HttpLink({ uri: remoteUrl, fetch })]);
+    //const link = new HttpLink({ uri: remoteUrl, fetch });
     const schema = await introspectSchema(link);
 
     const executableSchema = makeRemoteExecutableSchema({
         schema,
-        link,
+        link
     });
 
     return executableSchema;
@@ -46,7 +92,7 @@ const makeResolversForSchemaStiching = (chirpSchema, authorSchema) => ({
         chirps: {
             fragment: `fragment UserFragment on User { id }`,
             resolve(user, args, context, info) {
-                return info.mergeInfo.delegateToSchema({
+              return info.mergeInfo.delegateToSchema({
                     schema: chirpSchema,
                     operation: 'query',
                     fieldName: 'chirpsByAuthorId',
@@ -63,7 +109,7 @@ const makeResolversForSchemaStiching = (chirpSchema, authorSchema) => ({
         author: {
             fragment: `fragment ChirpFragment on Chirp { authorId }`,
             resolve(chirp, args, context, info) {
-                return info.mergeInfo.delegateToSchema({
+              return info.mergeInfo.delegateToSchema({
                     schema: authorSchema,
                     operation: 'query',
                     fieldName: 'userById',
@@ -85,7 +131,12 @@ Promise.all([fetchChirpSchema, fetchAuthorSchema]).then(([chirpSchema, authorSch
         resolvers: makeResolversForSchemaStiching(chirpSchema, authorSchema),
     });
     
-    const server = new ApolloServer({ schema });
+    const server = new ApolloServer({ 
+      schema,
+      plugins: [
+        CacheControlHeaderPlugin
+      ], 
+    });
     
     server.listen(4000).then(({ url }) => {
         console.log(`🚀 Server ready at ${url}`)

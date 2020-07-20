@@ -60,7 +60,7 @@ const chirpSchema = {
     typeDefs: gql`
         type Chirp {
             id: ID!
-            text: String
+            text: String @cacheControl(maxAge: 140)
             authorId: ID!
         }
 
@@ -90,6 +90,7 @@ const server = new ApolloServer({
         // Options are passed through to the Redis client
     }),
     plugins: [responseCachePlugin()],
+    // introspection: false,
 });
 
 server.listen(4001).then(({ url }) => {
