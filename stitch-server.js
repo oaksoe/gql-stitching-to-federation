@@ -33,6 +33,7 @@ const CacheControlHeaderPlugin = {
         return {
             willSendResponse ({ response, context }) {
                 if (context.cacheControl) {
+                  console.log(context.cacheControl);
                   const cacheHeader = calculateCacheHeader(context.cacheControl);
                   response.http.headers.set('Cache-Control', cacheHeader);
                 }

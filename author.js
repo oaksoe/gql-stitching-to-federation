@@ -53,9 +53,9 @@ const responseCachePlugin = require('apollo-server-plugin-response-cache');
 // Non-federation way
 const authorSchema = {
     typeDefs: gql`
-        type User {
+        type User @cacheControl(maxAge: 10) {
             id: ID!
-            email: String @cacheControl(maxAge: 240)
+            email: String @cacheControl(maxAge: 15)
         }
     
         type Query {

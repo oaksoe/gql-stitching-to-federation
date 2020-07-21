@@ -58,9 +58,9 @@ const responseCachePlugin = require('apollo-server-plugin-response-cache');
 // Non-federation way
 const chirpSchema = {
     typeDefs: gql`
-        type Chirp {
+        type Chirp @cacheControl(maxAge: 200) {
             id: ID!
-            text: String @cacheControl(maxAge: 140)
+            text: String @cacheControl(maxAge: 100)
             authorId: ID!
         }
 
@@ -72,7 +72,7 @@ const chirpSchema = {
     resolvers: {
         Query: {
             chirpById: (root, args, context, info) => {
-                info.cacheControl.setCacheHint({ maxAge: 888 });
+                info.cacheControl.setCacheHint({ maxAge: 300 });
                 return {id: 1, text: 'first chirp', authorId: 1}
             },
             chirpsByAuthorId: (root, args, context, info) => {
