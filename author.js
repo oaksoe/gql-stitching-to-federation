@@ -1,6 +1,7 @@
 const { ApolloServer, gql } = require('apollo-server');
 const { buildFederatedSchema } = require('@apollo/federation');
-const { RedisCache } = require('apollo-server-cache-redis');
+// const { RedisCache } = require('apollo-server-cache-redis');
+const { AerospikeCache } = require('apollo-server-cache-aerospike-kv');
 const responseCachePlugin = require('apollo-server-plugin-response-cache');
 
 // Federation way
@@ -53,9 +54,9 @@ const responseCachePlugin = require('apollo-server-plugin-response-cache');
 // Non-federation way
 const authorSchema = {
     typeDefs: gql`
-        type User @cacheControl(maxAge: 10) {
+        type User @cacheControl(maxAge: 1000) {
             id: ID!
-            email: String @cacheControl(maxAge: 15)
+            email: String @cacheControl(maxAge: 1500)
         }
     
         type Query {
@@ -65,7 +66,7 @@ const authorSchema = {
     resolvers: {
         Query: {
             userById: (root, args, context, info) => {
-                info.cacheControl.setCacheHint({ maxAge: 60 });
+                info.cacheControl.setCacheHint({ maxAge: 6000 });
                 return {id: 1, email: 'oak@gmail.com'};
             },
         }
@@ -74,9 +75,15 @@ const authorSchema = {
 
 const server = new ApolloServer({
     ...authorSchema,
-    cache: new RedisCache({
-        host: 'localhost', // 'redis-server',
-        // Options are passed through to the Redis client
+    // cache: new RedisCache({
+    //     host: 'localhost', // 'redis-server',
+    //     // Options are passed through to the Redis client
+    // }),
+    cache: new AerospikeCache({
+        hosts: '172.28.128.3:3000',  // to get ip address of aerospike => vagrant ssh -c "ip addr"|grep 'global eth1'
+      }, {
+        namespace: 'test',
+        set: 'cache',
     }),
     plugins: [responseCachePlugin()],
     //introspection: false,
