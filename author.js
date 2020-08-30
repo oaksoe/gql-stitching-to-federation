@@ -1,8 +1,9 @@
 const { ApolloServer, gql } = require('apollo-server');
 const { buildFederatedSchema } = require('@apollo/federation');
-// const { RedisCache } = require('apollo-server-cache-redis');
-const { AerospikeCache } = require('apollo-server-cache-aerospike-kv');
+const { RedisCache } = require('apollo-server-cache-redis');
+// const { AerospikeCache } = require('apollo-server-cache-aerospike-kv');
 const responseCachePlugin = require('apollo-server-plugin-response-cache');
+const { CustomResponseCachePlugin } = require('./custom-response-plugin');
 
 // Federation way
 // const authorSchema = {
@@ -62,11 +63,20 @@ const authorSchema = {
         type Query {
             userById(id: ID!): User
         }
+
+        type Mutation {
+            updateUser(id: ID!): User
+        }
     `,
     resolvers: {
         Query: {
             userById: (root, args, context, info) => {
                 info.cacheControl.setCacheHint({ maxAge: 6000 });
+                return {id: 1, email: 'oak@gmail.com'};
+            },
+        },
+        Mutation: {
+            updateUser: (root, args, context, info) => {
                 return {id: 1, email: 'oak@gmail.com'};
             },
         }
@@ -75,17 +85,17 @@ const authorSchema = {
 
 const server = new ApolloServer({
     ...authorSchema,
-    // cache: new RedisCache({
-    //     host: 'localhost', // 'redis-server',
-    //     // Options are passed through to the Redis client
-    // }),
-    cache: new AerospikeCache({
-        hosts: '172.28.128.3:3000',  // to get ip address of aerospike => vagrant ssh -c "ip addr"|grep 'global eth1'
-      }, {
-        namespace: 'test',
-        set: 'cache',
+    cache: new RedisCache({
+        host: 'localhost', // 'redis-server',
+        // Options are passed through to the Redis client
     }),
-    plugins: [responseCachePlugin()],
+    // cache: new AerospikeCache({
+    //     hosts: '172.28.128.3:3000',  // to get ip address of aerospike => vagrant ssh -c "ip addr"|grep 'global eth1'
+    //   }, {
+    //     namespace: 'test',
+    //     set: 'cache',
+    // }),
+    plugins: [CustomResponseCachePlugin],// [responseCachePlugin()],
     //introspection: false,
 });
 
