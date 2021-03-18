@@ -11,20 +11,32 @@ let chirpSchema = makeExecutableSchema({
         type Chirp @cacheControl(maxAge: 120) {
             id: ID!
             text: String @cacheControl(maxAge: 60)
-            author: User!
-        }
-
-        type User {
-            id: ID!
-            chirps: [Chirp]
         }
 
         type Query {
             chirpById(id: ID!): Chirp
             chirpsByAuthorId(authorId: ID!): [Chirp]
-            userById(id: ID!): User
         }
     `,
+  // typeDefs: `
+  //       ${CacheDirectives}\n
+  //       type Chirp @cacheControl(maxAge: 120) {
+  //           id: ID!
+  //           text: String @cacheControl(maxAge: 60)
+  //           author: User!
+  //       }
+
+  //       type User {
+  //           id: ID!
+  //           chirps: [Chirp]
+  //       }
+
+  //       type Query {
+  //           chirpById(id: ID!): Chirp
+  //           chirpsByAuthorId(authorId: ID!): [Chirp]
+  //           userById(id: ID!): User
+  //       }
+  //   `,
 });
 
 chirpSchema = addMocksToSchema({ schema: chirpSchema });

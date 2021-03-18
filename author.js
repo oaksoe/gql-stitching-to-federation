@@ -74,11 +74,12 @@ const authorSchema = {
 
 const server = new ApolloServer({
     ...authorSchema,
-    cache: new RedisCache({
-        host: 'localhost', // 'redis-server',
-        // Options are passed through to the Redis client
-    }),
-    plugins: [responseCachePlugin()],
+    // cache: new RedisCache({
+    //     host: 'localhost', // 'redis-server',
+    //     // Options are passed through to the Redis client
+    // }),
+    // plugins: [responseCachePlugin()],
+    playground: { version: '1.7.20' }
     //introspection: false,
 });
 
