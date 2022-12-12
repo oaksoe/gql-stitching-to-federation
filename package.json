@@ -13,7 +13,7 @@
     "@apollo/gateway": "^0.16.0",
     "apollo-link-http": "^1.5.17",
     "apollo-server": "^2.14.2",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "graphql-tools": "^5.0.0",
     "node-fetch": "^2.6.0"
   }
